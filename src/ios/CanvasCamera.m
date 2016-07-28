@@ -562,7 +562,10 @@ typedef enum {
                 //[retValues setObject:imagePath forKey:kDataKey];
 
                 NSString *javascript = [NSString stringWithFormat:@"%@%@%@", @"CanvasCamera.capture('", imagePath, @"');"];
-                [self.webView stringByEvaluatingJavaScriptFromString:javascript];
+                if ([self.webView isKindOfClass:[UIWebView class]]) { 
+                	[(UIWebView*)self.webView stringByEvaluatingJavaScriptFromString:jsString]; 
+                }
+                //[self.webView stringByEvaluatingJavaScriptFromString:javascript];
             }
         });
 #endif
