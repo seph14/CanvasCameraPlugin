@@ -563,7 +563,7 @@ typedef enum {
 
                 NSString *javascript = [NSString stringWithFormat:@"%@%@%@", @"CanvasCamera.capture('", imagePath, @"');"];
                 if ([self.webView isKindOfClass:[UIWebView class]]) { 
-                	[(UIWebView*)self.webView stringByEvaluatingJavaScriptFromString:jsString]; 
+                	[(UIWebView*)self.webView stringByEvaluatingJavaScriptFromString:javascript]; 
                 }
                 //[self.webView stringByEvaluatingJavaScriptFromString:javascript];
             }
