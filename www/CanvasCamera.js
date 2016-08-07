@@ -96,24 +96,6 @@ cordova.define("cordova/plugin/CanvasCamera", function(require, exports, module)
                 this._orientation = 'portrait';
                 break;
         }
-
-        var windowWidth = window.innerWidth;
-        var windowHeight = window.innerHeight;
-        var pixelRatio = window.devicePixelRatio || 1; /// get pixel ratio of device
-
-
-        this._obj.width = windowWidth;// * pixelRatio;   /// resolution of canvas
-        this._obj.height = windowHeight;// * pixelRatio;
-
-
-        this._obj.style.width = windowWidth + 'px';   /// CSS size of canvas
-        this._obj.style.height = windowHeight + 'px';
-
-
-        this._x = 0;
-        this._y = 0;
-        this._width = windowWidth;
-        this._height = windowHeight;
     };
 
     CanvasCamera.prototype.takePicture = function(onsuccess) {
