@@ -18,10 +18,14 @@ cordova.define("cordova/plugin/CanvasCamera", function(require, exports, module)
         var _y = 0;
         var _width = 0;
         var _height = 0;
+        var _newFrame = false;
     };
 
-
-
+    CanvasCamera.prototype.hasNewFrame = function(){
+        var tmp = this._newFrame;
+        this._newFrame = false;
+        return tmp;
+    };
 
     CanvasCamera.prototype.initialize = function(obj) {
         var _this = this;
@@ -33,6 +37,7 @@ cordova.define("cordova/plugin/CanvasCamera", function(require, exports, module)
 
         this._camImage.onload = function() {
             _this._context.clearRect(0, 0, _this._width, _this._height);
+            _this._newFrame = true;
             if (window.orientation == 90
                || window.orientation == -90)
             {
