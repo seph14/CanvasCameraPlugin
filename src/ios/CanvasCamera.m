@@ -3,7 +3,7 @@
 //  PhoneGap iOS Cordova Plugin to capture Camera streaming into a HTML5 Canvas or an IMG tag.
 //
 //  Created by Diego Araos <d@wehack.it> on 12/29/12.
-//
+//  Edited by Seph Li <s@solid-jellyfish.com> on 08/07/16
 //  MIT License
 
 #import "CanvasCamera.h"
@@ -63,7 +63,6 @@ typedef enum {
 - (void)startCapture:(CDVInvokedUrlCommand *)command
 {
     CDVPluginResult *pluginResult = nil;
-    //NSString *resultJS = nil;
     
     // check already started
     if (self.session && bIsStarted)
@@ -77,11 +76,11 @@ typedef enum {
     }
     
     // init parameters - default values
-    _quality = 85;
+    _quality = 50;
     _destType = DestinationTypeFileURI;
     _encodeType = EncodingTypeJPEG;
-    _width = 640;
-    _height = 480;
+    _width = 3;
+    _height = 240;
     _saveToPhotoAlbum = NO;
     _correctOrientation = YES;
     
@@ -94,9 +93,17 @@ typedef enum {
     
     // add support for options (fps, capture quality, capture format, etc.)
     self.session = [[AVCaptureSession alloc] init];
-    self.session.sessionPreset = AVCaptureSessionPresetPhoto;//AVCaptureSessionPreset352x288;
+    self.session.sessionPreset = AVCaptureSessionPresetLow;//AVCaptureSessionPreset352x288;
     
     self.device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    //NSString *platform = [self platformString];
+    /*if ([platform  isEqual: @"iPad 2"] || [platform  isEqual: @"iPad 2 (WiFi)"] || [platform  isEqual: @"iPad 2 (CDMA)"]) {
+        [self configureCamera:self.device withFrameRate:5];
+    }else if ([platform  isEqual: @"iPad Mini (WiFi)"] || [platform  isEqual: @"iPad Mini"] || [platform  isEqual: @"iPad Mini (GSM+CDMA)"]) {
+        [self configureCamera:self.device withFrameRate:5];
+    }else{*/
+    [self configureCamera:self.device withFrameRate:6];
+    //}
     self.input = [AVCaptureDeviceInput deviceInputWithDevice:self.device error:nil];
     
     self.output = [[AVCaptureVideoDataOutput alloc] init];
@@ -110,6 +117,7 @@ typedef enum {
     queue = dispatch_queue_create("canvas_camera_queue", NULL);
     
     [self.output setSampleBufferDelegate:(id)self queue:queue];
+    [self.output setAlwaysDiscardsLateVideoFrames:YES];
     
     [self.session addInput:self.input];
     [self.session addOutput:self.output];
@@ -125,15 +133,35 @@ typedef enum {
     
     // success callback
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@""];
-    //resultJS = [pluginResult toSuccessCallbackString:command.callbackId];
-    //[self writeJavascript:resultJS];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void)configureCamera:(AVCaptureDevice *)device withFrameRate:(int)desiredFrameRate
+{
+    AVCaptureDeviceFormat *desiredFormat = nil;
+    for ( AVCaptureDeviceFormat *format in [device formats] ) {
+        for ( AVFrameRateRange *range in format.videoSupportedFrameRateRanges ) {
+            if ( range.maxFrameRate >= desiredFrameRate && range.minFrameRate <= desiredFrameRate ) {
+                desiredFormat = format;
+                goto desiredFormatFound;
+            }
+        }
+    }
+    
+    desiredFormatFound:
+    if ( desiredFormat ) {
+        if ( [device lockForConfiguration:NULL] == YES ) {
+            device.activeFormat = desiredFormat ;
+            device.activeVideoMinFrameDuration = CMTimeMake ( 1, desiredFrameRate );
+            device.activeVideoMaxFrameDuration = CMTimeMake ( 1, desiredFrameRate );
+            [device unlockForConfiguration];
+        }
+    }
 }
 
 - (void)stopCapture:(CDVInvokedUrlCommand *)command
 {
     CDVPluginResult *pluginResult = nil;
-    //NSString *resultJS = nil;
     
     if (self.session)
     {
@@ -144,8 +172,6 @@ typedef enum {
         
         // success callback
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@""];
-        //resultJS = [pluginResult toSuccessCallbackString:command.callbackId];
-        //[self writeJavascript:resultJS];
     	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }
     else
@@ -154,9 +180,7 @@ typedef enum {
         
         // failure callback
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Already stopped"];
-        //resultJS = [pluginResult toErrorCallbackString:command.callbackId];
-        //[self writeJavascript:resultJS];
-    	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+     	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }
 }
 
@@ -164,7 +188,6 @@ typedef enum {
 {
     
     CDVPluginResult *pluginResult = nil;
-    //NSString *resultJS = nil;
     
     NSString *errMsg = @"";
     BOOL bParsed = NO;
@@ -236,24 +259,18 @@ typedef enum {
         {
             // success callback
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@""];
-            //resultJS = [pluginResult toSuccessCallbackString:command.callbackId];
-            //[self writeJavascript:resultJS];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         }
         else
         {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errMsg];
-            //resultJS = [pluginResult toErrorCallbackString:command.callbackId];
-            //[self writeJavascript:resultJS];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         }
     }
     else
     {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errMsg];
-        //resultJS = [pluginResult toErrorCallbackString:command.callbackId];
-        //[self writeJavascript:resultJS];
-    	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }
 }
 
@@ -317,17 +334,13 @@ typedef enum {
                 
                 // success callback
                 pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@""];
-                //resultJS = [pluginResult toSuccessCallbackString:command.callbackId];
-                //[self writeJavascript:resultJS];
-            	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
             }
             else
             {
                 // success callback
                 pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@""];
-                //resultJS = [pluginResult toSuccessCallbackString:command.callbackId];
-                //[self writeJavascript:resultJS];
-            	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
             }
             
             
@@ -336,8 +349,6 @@ typedef enum {
         {
             errMsg = @"Capture stopped";
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errMsg];
-            //resultJS = [pluginResult toErrorCallbackString:command.callbackId];
-            //[self writeJavascript:resultJS];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         }
         
@@ -346,9 +357,7 @@ typedef enum {
     else
     {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errMsg];
-        //resultJS = [pluginResult toErrorCallbackString:command.callbackId];
-        //[self writeJavascript:resultJS];
-    	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }
 }
 
@@ -577,6 +586,50 @@ typedef enum {
 
 #pragma mark - Utilities
 
+/*- (NSString *) platformString{
+    // Gets a string with the device model
+    size_t size;
+    sysctlbyname("hw.machine", NULL, &size, NULL, 0);
+    char *machine = malloc(size);
+    sysctlbyname("hw.machine", machine, &size, NULL, 0);
+    NSString *platform = [NSString stringWithCString:machine encoding:NSUTF8StringEncoding];
+    free(machine);
+    if ([platform isEqualToString:@"iPhone1,1"])    return @"iPhone 2G";
+    if ([platform isEqualToString:@"iPhone1,2"])    return @"iPhone 3G";
+    if ([platform isEqualToString:@"iPhone2,1"])    return @"iPhone 3GS";
+    if ([platform isEqualToString:@"iPhone3,1"])    return @"iPhone 4";
+    if ([platform isEqualToString:@"iPhone3,2"])    return @"iPhone 4";
+    if ([platform isEqualToString:@"iPhone3,3"])    return @"iPhone 4 (CDMA)";
+    if ([platform isEqualToString:@"iPhone4,1"])    return @"iPhone 4S";
+    if ([platform isEqualToString:@"iPhone5,1"])    return @"iPhone 5";
+    if ([platform isEqualToString:@"iPhone5,2"])    return @"iPhone 5 (GSM+CDMA)";
+    
+    if ([platform isEqualToString:@"iPod1,1"])      return @"iPod Touch (1 Gen)";
+    if ([platform isEqualToString:@"iPod2,1"])      return @"iPod Touch (2 Gen)";
+    if ([platform isEqualToString:@"iPod3,1"])      return @"iPod Touch (3 Gen)";
+    if ([platform isEqualToString:@"iPod4,1"])      return @"iPod Touch (4 Gen)";
+    if ([platform isEqualToString:@"iPod5,1"])      return @"iPod Touch (5 Gen)";
+    
+    if ([platform isEqualToString:@"iPad1,1"])      return @"iPad";
+    if ([platform isEqualToString:@"iPad1,2"])      return @"iPad 3G";
+    if ([platform isEqualToString:@"iPad2,1"])      return @"iPad 2 (WiFi)";
+    if ([platform isEqualToString:@"iPad2,2"])      return @"iPad 2";
+    if ([platform isEqualToString:@"iPad2,3"])      return @"iPad 2 (CDMA)";
+    if ([platform isEqualToString:@"iPad2,4"])      return @"iPad 2";
+    if ([platform isEqualToString:@"iPad2,5"])      return @"iPad Mini (WiFi)";
+    if ([platform isEqualToString:@"iPad2,6"])      return @"iPad Mini";
+    if ([platform isEqualToString:@"iPad2,7"])      return @"iPad Mini (GSM+CDMA)";
+    if ([platform isEqualToString:@"iPad3,1"])      return @"iPad 3 (WiFi)";
+    if ([platform isEqualToString:@"iPad3,2"])      return @"iPad 3 (GSM+CDMA)";
+    if ([platform isEqualToString:@"iPad3,3"])      return @"iPad 3";
+    if ([platform isEqualToString:@"iPad3,4"])      return @"iPad 4 (WiFi)";
+    if ([platform isEqualToString:@"iPad3,5"])      return @"iPad 4";
+    if ([platform isEqualToString:@"iPad3,6"])      return @"iPad 4 (GSM+CDMA)";
+    
+    if ([platform isEqualToString:@"i386"])         return @"Simulator";
+    if ([platform isEqualToString:@"x86_64"])       return @"Simulator";
+    return platform;
+}*/
 
 // utility routing used during image capture to set up capture orientation
 - (AVCaptureVideoOrientation)avOrientationForDeviceOrientation:(UIDeviceOrientation)deviceOrientation
