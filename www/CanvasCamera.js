@@ -1,3 +1,4 @@
+cordova.define("com.keith.cordova.plugin.canvascamera.CanvasCamera", function(require, exports, module) {
 //
 //  CanvasCamera.js
 //  PhoneGap iOS Cordova Plugin to capture Camera streaming into a HTML5 Canvas or an IMG tag.
@@ -16,8 +17,8 @@ cordova.define("cordova/plugin/CanvasCamera", function(require, exports, module)
 
         var _x = 0;
         var _y = 0;
-        var _width = 0;
-        var _height = 0;
+        var _width = 320;
+        var _height = 240;
         var _newFrame = false;
     };
 
@@ -66,12 +67,9 @@ cordova.define("cordova/plugin/CanvasCamera", function(require, exports, module)
         this.doOrientationChange();
     };
 
-
     CanvasCamera.prototype.start = function(options) {
         cordova.exec(false, false, "CanvasCamera", "startCapture", [options]);
     };
-
-
 
     CanvasCamera.prototype.capture = function(data) {
         this._camImage.src = data;
@@ -96,6 +94,23 @@ cordova.define("cordova/plugin/CanvasCamera", function(require, exports, module)
                 this._orientation = 'portrait';
                 break;
         }
+
+        var windowWidth = 320;//window.innerWidth;
+        var windowHeight = 240;//window.innerHeight;
+        var pixelRatio = window.devicePixelRatio || 1; /// get pixel ratio of device
+
+
+        this._obj.width = windowWidth;// * pixelRatio;   /// resolution of canvas
+        this._obj.height = windowHeight;// * pixelRatio;
+
+
+        this._obj.style.width = windowWidth + 'px';   /// CSS size of canvas
+        this._obj.style.height = windowHeight + 'px';
+
+        this._x = 0;
+        this._y = 0;
+        this._width = windowWidth;
+        this._height = windowHeight;
     };
 
     CanvasCamera.prototype.takePicture = function(onsuccess) {
@@ -148,3 +163,5 @@ CanvasCamera.CameraPosition = CameraPosition;
 CanvasCamera.FlashMode = FlashMode;
 
 module.exports = CanvasCamera;
+
+});
