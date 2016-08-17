@@ -3,7 +3,7 @@
 //  PhoneGap iOS Cordova Plugin to capture Camera streaming into a HTML5 Canvas or an IMG tag.
 //
 //  Created by Diego Araos <d@wehack.it> on 12/29/12.
-//  Edited by Seph Li <s@solid-jellyfish.com> on 08/07/16
+//
 //  MIT License
 
 #import "CanvasCamera.h"
@@ -69,9 +69,7 @@ typedef enum {
     {
         // failure callback
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Already started"];
-        //resultJS = [pluginResult toErrorCallbackString:command.callbackId];
-        //[self writeJavascript:resultJS];
-	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         return;
     }
     
@@ -93,17 +91,10 @@ typedef enum {
     
     // add support for options (fps, capture quality, capture format, etc.)
     self.session = [[AVCaptureSession alloc] init];
-    self.session.sessionPreset = AVCaptureSessionPresetLow;//AVCaptureSessionPreset352x288;
+    self.session.sessionPreset = AVCaptureSessionPreset352x288; //AVCaptureSessionPresetLow;//AVCaptureSessionPreset352x288;
     
     self.device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    //NSString *platform = [self platformString];
-    /*if ([platform  isEqual: @"iPad 2"] || [platform  isEqual: @"iPad 2 (WiFi)"] || [platform  isEqual: @"iPad 2 (CDMA)"]) {
-        [self configureCamera:self.device withFrameRate:5];
-    }else if ([platform  isEqual: @"iPad Mini (WiFi)"] || [platform  isEqual: @"iPad Mini"] || [platform  isEqual: @"iPad Mini (GSM+CDMA)"]) {
-        [self configureCamera:self.device withFrameRate:5];
-    }else{*/
     [self configureCamera:self.device withFrameRate:6];
-    //}
     self.input = [AVCaptureDeviceInput deviceInputWithDevice:self.device error:nil];
     
     self.output = [[AVCaptureVideoDataOutput alloc] init];
@@ -112,7 +103,6 @@ typedef enum {
     self.stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
     NSDictionary *outputSettings = @{ AVVideoCodecKey : AVVideoCodecJPEG};
     [self.stillImageOutput setOutputSettings:outputSettings];
-    
     
     queue = dispatch_queue_create("canvas_camera_queue", NULL);
     
@@ -125,12 +115,10 @@ typedef enum {
     // add still image output
     [self.session addOutput:self.stillImageOutput];
 
-    
     [self.session startRunning];
     
     bIsStarted = YES;
-    
-    
+        
     // success callback
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@""];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -162,6 +150,7 @@ typedef enum {
 - (void)stopCapture:(CDVInvokedUrlCommand *)command
 {
     CDVPluginResult *pluginResult = nil;
+    //NSString *resultJS = nil;
     
     if (self.session)
     {
@@ -172,7 +161,9 @@ typedef enum {
         
         // success callback
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@""];
-    	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        //resultJS = [pluginResult toSuccessCallbackString:command.callbackId];
+        //[self writeJavascript:resultJS];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }
     else
     {
@@ -180,7 +171,9 @@ typedef enum {
         
         // failure callback
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Already stopped"];
-     	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        //resultJS = [pluginResult toErrorCallbackString:command.callbackId];
+        //[self writeJavascript:resultJS];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }
 }
 
@@ -188,6 +181,7 @@ typedef enum {
 {
     
     CDVPluginResult *pluginResult = nil;
+    //NSString *resultJS = nil;
     
     NSString *errMsg = @"";
     BOOL bParsed = NO;
@@ -259,17 +253,23 @@ typedef enum {
         {
             // success callback
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@""];
+            //resultJS = [pluginResult toSuccessCallbackString:command.callbackId];
+            //[self writeJavascript:resultJS];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         }
         else
         {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errMsg];
+            //resultJS = [pluginResult toErrorCallbackString:command.callbackId];
+            //[self writeJavascript:resultJS];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         }
     }
     else
     {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errMsg];
+        //resultJS = [pluginResult toErrorCallbackString:command.callbackId];
+        //[self writeJavascript:resultJS];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }
 }
@@ -277,7 +277,6 @@ typedef enum {
 - (void)setCameraPosition:(CDVInvokedUrlCommand *)command
 {
     CDVPluginResult *pluginResult = nil;
-    NSString *resultJS = nil;
     
     NSString *errMsg = @"";
     BOOL bParsed = NO;
@@ -378,17 +377,17 @@ typedef enum {
     }
     
     // Find out the current orientation and tell the still image output.
-	AVCaptureConnection *stillImageConnection = videoConnection;//[self.stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
-	UIDeviceOrientation curDeviceOrientation = [[UIDevice currentDevice] orientation];
-	AVCaptureVideoOrientation avcaptureOrientation = [self avOrientationForDeviceOrientation:curDeviceOrientation];
-	[stillImageConnection setVideoOrientation:avcaptureOrientation];
+    AVCaptureConnection *stillImageConnection = videoConnection;//[self.stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
+    UIDeviceOrientation curDeviceOrientation = [[UIDevice currentDevice] orientation];
+    AVCaptureVideoOrientation avcaptureOrientation = [self avOrientationForDeviceOrientation:curDeviceOrientation];
+    [stillImageConnection setVideoOrientation:avcaptureOrientation];
     
     // set the appropriate pixel format / image type output setting depending on if we'll need an uncompressed image for
     // the possiblity of drawing the red square over top or if we're just writing a jpeg to the camera roll which is the trival case
     [self.stillImageOutput setOutputSettings:[NSDictionary dictionaryWithObject:AVVideoCodecJPEG
                                                                          forKey:AVVideoCodecKey]];
-	
-	[self.stillImageOutput captureStillImageAsynchronouslyFromConnection:stillImageConnection
+    
+    [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:stillImageConnection
        completionHandler:^(CMSampleBufferRef imageDataSampleBuffer, NSError *error) {
            if (error) {
                //[self displayErrorOnMainQueue:error withMessage:@"Take picture failed"];
@@ -572,7 +571,7 @@ typedef enum {
 
                 NSString *javascript = [NSString stringWithFormat:@"%@%@%@", @"CanvasCamera.capture('", imagePath, @"');"];
                 if ([self.webView isKindOfClass:[UIWebView class]]) { 
-                	[(UIWebView*)self.webView stringByEvaluatingJavaScriptFromString:javascript]; 
+                    [(UIWebView*)self.webView stringByEvaluatingJavaScriptFromString:javascript]; 
                 }
                 //[self.webView stringByEvaluatingJavaScriptFromString:javascript];
             }
@@ -634,12 +633,12 @@ typedef enum {
 // utility routing used during image capture to set up capture orientation
 - (AVCaptureVideoOrientation)avOrientationForDeviceOrientation:(UIDeviceOrientation)deviceOrientation
 {
-	AVCaptureVideoOrientation result = (AVCaptureVideoOrientation)deviceOrientation;
-	if ( deviceOrientation == UIDeviceOrientationLandscapeLeft )
-		result = AVCaptureVideoOrientationLandscapeRight;
-	else if ( deviceOrientation == UIDeviceOrientationLandscapeRight )
-		result = AVCaptureVideoOrientationLandscapeLeft;
-	return result;
+    AVCaptureVideoOrientation result = (AVCaptureVideoOrientation)deviceOrientation;
+    if ( deviceOrientation == UIDeviceOrientationLandscapeLeft )
+        result = AVCaptureVideoOrientationLandscapeRight;
+    else if ( deviceOrientation == UIDeviceOrientationLandscapeRight )
+        result = AVCaptureVideoOrientationLandscapeLeft;
+    return result;
 }
 
 
@@ -659,16 +658,16 @@ typedef enum {
 // and return the new composited image which can be saved to the camera roll
 - (CGImageRef)createResizedCGImage:(CGImageRef)srcImage withSize:(CGSize)size
 {
-	CGImageRef returnImage = NULL;
+    CGImageRef returnImage = NULL;
     CGRect newImageRect = CGRectMake(0, 0, size.width, size.height);
-	CGContextRef bitmapContext = (CGContextRef)CreateCGBitmapContextForSize(size);
-	CGContextClearRect(bitmapContext, newImageRect);
-	CGContextDrawImage(bitmapContext, newImageRect, srcImage);
+    CGContextRef bitmapContext = (CGContextRef)CreateCGBitmapContextForSize(size);
+    CGContextClearRect(bitmapContext, newImageRect);
+    CGContextDrawImage(bitmapContext, newImageRect, srcImage);
     
-	returnImage = CGBitmapContextCreateImage(bitmapContext);
-	CGContextRelease (bitmapContext);
-	
-	return returnImage;
+    returnImage = CGBitmapContextCreateImage(bitmapContext);
+    CGContextRelease (bitmapContext);
+    
+    return returnImage;
 }
 
 
@@ -793,45 +792,45 @@ static CGFloat DegreesToRadians(CGFloat degrees) {return degrees * M_PI / 180;};
 // utility routine used after taking a still image to write the resulting image to the camera roll
 - (BOOL)writeCGImageToCameraRoll:(CGImageRef)cgImage withMetadata:(NSDictionary *)metadata withQuality:(CGFloat)quality withEncodingType:(EncodingType)encodingType
 {
-	CFMutableDataRef destinationData = CFDataCreateMutable(kCFAllocatorDefault, 0);
-	CGImageDestinationRef destination = nil;
+    CFMutableDataRef destinationData = CFDataCreateMutable(kCFAllocatorDefault, 0);
+    CGImageDestinationRef destination = nil;
     if (encodingType == EncodingTypeJPEG)
         destination = CGImageDestinationCreateWithData(destinationData,
-																		 kUTTypeJPEG,
-																		 1,
-																		 NULL);
+                                                                         kUTTypeJPEG,
+                                                                         1,
+                                                                         NULL);
     else
         destination = CGImageDestinationCreateWithData(destinationData,
                                                        kUTTypePNG,
                                                        1,
                                                        NULL);
-	BOOL success = (destination != NULL);
-	if (!success)
+    BOOL success = (destination != NULL);
+    if (!success)
     {
         if (destinationData)
             CFRelease(destinationData);
         return success;
     }
     
-	const float JPEGCompQuality = quality; // JPEGHigherQuality (0 ~ 1)
-	CFMutableDictionaryRef optionsDict = NULL;
-	CFNumberRef qualityNum = NULL;
-	
-	qualityNum = CFNumberCreate(0, kCFNumberFloatType, &JPEGCompQuality);
-	if ( qualityNum ) {
-		optionsDict = CFDictionaryCreateMutable(0, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-		if ( optionsDict )
-			CFDictionarySetValue(optionsDict, kCGImageDestinationLossyCompressionQuality, qualityNum);
-		CFRelease( qualityNum );
-	}
-	
-	CGImageDestinationAddImage( destination, cgImage, optionsDict );
-	success = CGImageDestinationFinalize( destination );
+    const float JPEGCompQuality = quality; // JPEGHigherQuality (0 ~ 1)
+    CFMutableDictionaryRef optionsDict = NULL;
+    CFNumberRef qualityNum = NULL;
     
-	if ( optionsDict )
-		CFRelease(optionsDict);
-	
-	if (!success)
+    qualityNum = CFNumberCreate(0, kCFNumberFloatType, &JPEGCompQuality);
+    if ( qualityNum ) {
+        optionsDict = CFDictionaryCreateMutable(0, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        if ( optionsDict )
+            CFDictionarySetValue(optionsDict, kCGImageDestinationLossyCompressionQuality, qualityNum);
+        CFRelease( qualityNum );
+    }
+    
+    CGImageDestinationAddImage( destination, cgImage, optionsDict );
+    success = CGImageDestinationFinalize( destination );
+    
+    if ( optionsDict )
+        CFRelease(optionsDict);
+    
+    if (!success)
     {
         if (destination)
             CFRelease(destination);
@@ -839,14 +838,14 @@ static CGFloat DegreesToRadians(CGFloat degrees) {return degrees * M_PI / 180;};
             CFRelease(destinationData);
         return success;
     }
-	
-	CFRetain(destinationData);
-	ALAssetsLibrary *library = [ALAssetsLibrary new];
-	[library writeImageDataToSavedPhotosAlbum:(__bridge id)destinationData metadata:metadata completionBlock:^(NSURL *assetURL, NSError *error) {
-		if (destinationData)
-			CFRelease(destinationData);
-	}];
-	//[library release];
+    
+    CFRetain(destinationData);
+    ALAssetsLibrary *library = [ALAssetsLibrary new];
+    [library writeImageDataToSavedPhotosAlbum:(__bridge id)destinationData metadata:metadata completionBlock:^(NSURL *assetURL, NSError *error) {
+        if (destinationData)
+            CFRelease(destinationData);
+    }];
+    //[library release];
     
     if (destination)
         CFRelease(destination);
@@ -866,16 +865,16 @@ static CGFloat DegreesToRadians(CGFloat degrees) {return degrees * M_PI / 180;};
         destination = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, NULL);
     
     const float JPEGCompQuality = quality; // JPEGHigherQuality (0 ~ 1)
-	CFMutableDictionaryRef optionsDict = NULL;
-	CFNumberRef qualityNum = NULL;
-	
-	qualityNum = CFNumberCreate(0, kCFNumberFloatType, &JPEGCompQuality);
-	if ( qualityNum ) {
-		optionsDict = CFDictionaryCreateMutable(0, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-		if ( optionsDict )
-			CFDictionarySetValue(optionsDict, kCGImageDestinationLossyCompressionQuality, qualityNum);
-		CFRelease( qualityNum );
-	}
+    CFMutableDictionaryRef optionsDict = NULL;
+    CFNumberRef qualityNum = NULL;
+    
+    qualityNum = CFNumberCreate(0, kCFNumberFloatType, &JPEGCompQuality);
+    if ( qualityNum ) {
+        optionsDict = CFDictionaryCreateMutable(0, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        if ( optionsDict )
+            CFDictionarySetValue(optionsDict, kCGImageDestinationLossyCompressionQuality, qualityNum);
+        CFRelease( qualityNum );
+    }
     
     CGImageDestinationAddImage(destination, cgImage, optionsDict);
     
@@ -886,7 +885,7 @@ static CGFloat DegreesToRadians(CGFloat degrees) {return degrees * M_PI / 180;};
     
     
     if ( optionsDict )
-		CFRelease(optionsDict);
+        CFRelease(optionsDict);
     
     CFRelease(destination);
     
@@ -927,18 +926,18 @@ static CGContextRef CreateCGBitmapContextForSize(CGSize size)
     CGContextRef    context = NULL;
     CGColorSpaceRef colorSpace;
     int             bitmapBytesPerRow;
-	
+    
     bitmapBytesPerRow = (size.width * 4);
-	
+    
     colorSpace = CGColorSpaceCreateDeviceRGB();
     context = CGBitmapContextCreate (NULL,
-									 size.width,
-									 size.height,
-									 8,      // bits per component
-									 bitmapBytesPerRow,
-									 colorSpace,
-									 kCGImageAlphaPremultipliedLast);
-	CGContextSetAllowsAntialiasing(context, NO);
+                                     size.width,
+                                     size.height,
+                                     8,      // bits per component
+                                     bitmapBytesPerRow,
+                                     colorSpace,
+                                     kCGImageAlphaPremultipliedLast);
+    CGContextSetAllowsAntialiasing(context, NO);
     CGColorSpaceRelease( colorSpace );
     return context;
 }
@@ -947,54 +946,54 @@ static CGContextRef CreateCGBitmapContextForSize(CGSize size)
 static void ReleaseCVPixelBuffer(void *pixel, const void *data, size_t size);
 static void ReleaseCVPixelBuffer(void *pixel, const void *data, size_t size)
 {
-	CVPixelBufferRef pixelBuffer = (CVPixelBufferRef)pixel;
-	CVPixelBufferUnlockBaseAddress( pixelBuffer, 0 );
-	CVPixelBufferRelease( pixelBuffer );
+    CVPixelBufferRef pixelBuffer = (CVPixelBufferRef)pixel;
+    CVPixelBufferUnlockBaseAddress( pixelBuffer, 0 );
+    CVPixelBufferRelease( pixelBuffer );
 }
 
 // create a CGImage with provided pixel buffer, pixel buffer must be uncompressed kCVPixelFormatType_32ARGB or kCVPixelFormatType_32BGRA
 static OSStatus CreateCGImageFromCVPixelBuffer(CVPixelBufferRef pixelBuffer, CGImageRef *imageOut);
 static OSStatus CreateCGImageFromCVPixelBuffer(CVPixelBufferRef pixelBuffer, CGImageRef *imageOut)
 {
-	OSStatus err = noErr;
-	OSType sourcePixelFormat;
-	size_t width, height, sourceRowBytes;
-	void *sourceBaseAddr = NULL;
-	CGBitmapInfo bitmapInfo;
-	CGColorSpaceRef colorspace = NULL;
-	CGDataProviderRef provider = NULL;
-	CGImageRef image = NULL;
-	
-	sourcePixelFormat = CVPixelBufferGetPixelFormatType( pixelBuffer );
-	if ( kCVPixelFormatType_32ARGB == sourcePixelFormat )
-		bitmapInfo = kCGBitmapByteOrder32Big | kCGImageAlphaNoneSkipFirst;
-	else if ( kCVPixelFormatType_32BGRA == sourcePixelFormat )
-		bitmapInfo = kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst;
-	else
-		return -95014; // only uncompressed pixel formats
-	
-	sourceRowBytes = CVPixelBufferGetBytesPerRow( pixelBuffer );
-	width = CVPixelBufferGetWidth( pixelBuffer );
-	height = CVPixelBufferGetHeight( pixelBuffer );
-	
-	CVPixelBufferLockBaseAddress( pixelBuffer, 0 );
-	sourceBaseAddr = CVPixelBufferGetBaseAddress( pixelBuffer );
-	
-	colorspace = CGColorSpaceCreateDeviceRGB();
+    OSStatus err = noErr;
+    OSType sourcePixelFormat;
+    size_t width, height, sourceRowBytes;
+    void *sourceBaseAddr = NULL;
+    CGBitmapInfo bitmapInfo;
+    CGColorSpaceRef colorspace = NULL;
+    CGDataProviderRef provider = NULL;
+    CGImageRef image = NULL;
     
-	CVPixelBufferRetain( pixelBuffer );
-	provider = CGDataProviderCreateWithData( (void *)pixelBuffer, sourceBaseAddr, sourceRowBytes * height, ReleaseCVPixelBuffer);
-	image = CGImageCreate(width, height, 8, 32, sourceRowBytes, colorspace, bitmapInfo, provider, NULL, true, kCGRenderingIntentDefault);
-	
+    sourcePixelFormat = CVPixelBufferGetPixelFormatType( pixelBuffer );
+    if ( kCVPixelFormatType_32ARGB == sourcePixelFormat )
+        bitmapInfo = kCGBitmapByteOrder32Big | kCGImageAlphaNoneSkipFirst;
+    else if ( kCVPixelFormatType_32BGRA == sourcePixelFormat )
+        bitmapInfo = kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst;
+    else
+        return -95014; // only uncompressed pixel formats
+    
+    sourceRowBytes = CVPixelBufferGetBytesPerRow( pixelBuffer );
+    width = CVPixelBufferGetWidth( pixelBuffer );
+    height = CVPixelBufferGetHeight( pixelBuffer );
+    
+    CVPixelBufferLockBaseAddress( pixelBuffer, 0 );
+    sourceBaseAddr = CVPixelBufferGetBaseAddress( pixelBuffer );
+    
+    colorspace = CGColorSpaceCreateDeviceRGB();
+    
+    CVPixelBufferRetain( pixelBuffer );
+    provider = CGDataProviderCreateWithData( (void *)pixelBuffer, sourceBaseAddr, sourceRowBytes * height, ReleaseCVPixelBuffer);
+    image = CGImageCreate(width, height, 8, 32, sourceRowBytes, colorspace, bitmapInfo, provider, NULL, true, kCGRenderingIntentDefault);
+    
 bail:
-	if ( err && image ) {
-		CGImageRelease( image );
-		image = NULL;
-	}
-	if ( provider ) CGDataProviderRelease( provider );
-	if ( colorspace ) CGColorSpaceRelease( colorspace );
-	*imageOut = image;
-	return err;
+    if ( err && image ) {
+        CGImageRelease( image );
+        image = NULL;
+    }
+    if ( provider ) CGDataProviderRelease( provider );
+    if ( colorspace ) CGColorSpaceRelease( colorspace );
+    *imageOut = image;
+    return err;
 }
 
 @end
